@@ -12,14 +12,14 @@ var u = require('underscore');
 
 //Initialize bot object
 var bot = new irc.Client(config.server, config.botName, {
-	channels: config.channels
+  channels: config.channels
 });
 
 //Function to perform a http GET request
 function get(url, success, error) {
-	http.get(url, function(res) {
-		body = "";
-		res.on('data', function (chunk) {
+  http.get(url, function(res) {
+    body = "";
+    res.on('data', function (chunk) {
       body += chunk;
     });
     res.on('end', function () {
@@ -35,17 +35,17 @@ bot.addListener('message', function(from, to, text, message) {
 	//from: user, to: channel or nick, text: text, message: object
 
   //Respond to own name
-	if (text == config.botName){
-		bot.say(from, 'Hi! Write help for available commands.');
+  if (text == config.botName){
+    bot.say(from, 'Hi! Write help for available commands.');
 
   //Respond to "help", if sent directly to me (msg)
-	} else if(to == config.botName && text == 'help') {
+  } else if(to == config.botName && text == 'help') {
     bot.say(from, 'For now, you can use the following commands:');
     bot.say(from, '!hacklab - Displays current status of the lab');
 
   //Respond to "!hacklab"
   } else if (text == '!hacklab'){
-		var error = false;
+    var error = false;
 
     //Init variables
     var room1;
@@ -53,7 +53,7 @@ bot.addListener('message', function(from, to, text, message) {
     var temp;
 
     //Wait until finished is called 3 times
-		var finished = u.after(3, function(){
+    var finished = u.after(3, function(){
 
       //If no errors...
       if(!error){
@@ -87,7 +87,7 @@ bot.addListener('message', function(from, to, text, message) {
         bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
       }
 
-		});
+    });
 
     //The following get requests call finished. When it's called three times,
     //we know the queries are complete and can start outputting.
@@ -122,7 +122,7 @@ bot.addListener('message', function(from, to, text, message) {
       finished();
     });
 
-	}
+  }
 
 });
 
