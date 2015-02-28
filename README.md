@@ -1,0 +1,2 @@
+# hackbot
+An IRC bot
