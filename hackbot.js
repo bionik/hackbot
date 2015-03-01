@@ -62,10 +62,10 @@ bot.addListener('message', function(from, to, text, message) {
   } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
     bot.say(from, 'For now, you can use the following commands:');
     bot.say(from, '!hacklab - Displays current status of the lab');
-    bot.say(from, '!weather [city] - Displays current weather info');
+    bot.say(from, '!w [city] - Displays current weather info');
 
   //Weather command
-  } else if ((params = checkCommand('!weather', text)) !== false){
+  } else if ((params = checkCommand('!w', text)) !== false){
 
     //Default query
     var query = 'turku';
