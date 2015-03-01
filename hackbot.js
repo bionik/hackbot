@@ -2,7 +2,8 @@
 var config = {
 	channels: ['#hacklabturku'],
 	server: 'open.ircnet.net',
-	botName: 'hackbot'
+	botName: 'hackbot',
+  wunderground_api_key: '69c0d907f31cc0xx'
 };
 
 //Load libraries
@@ -14,6 +15,23 @@ var u = require('underscore');
 var bot = new irc.Client(config.server, config.botName, {
   channels: config.channels
 });
+
+//Check for command and return parameters
+function checkCommand(command, text){
+  var text_trimmed = text.replace(/\s+/g,' ').trim();
+  var parameters = text_trimmed.split(' ');
+  //Check for command
+  if(parameters[0] === command){
+    if(parameters.length > 1){
+      console.log(parameters);
+      parameters.shift();
+      //Return parameters, first removed.
+      return parameters;
+    }
+    return [];
+  }
+  return false;
+}
 
 //Function to perform a http GET request
 function get(url, success, error) {
@@ -34,17 +52,57 @@ function get(url, success, error) {
 bot.addListener('message', function(from, to, text, message) {
 	//from: user, to: channel or nick, text: text, message: object
 
+  var params = [];
+
   //Respond to own name
-  if (text == config.botName){
+  if ((params = checkCommand(config.botName, text)) !== false){
     bot.say(from, 'Hi! Write help for available commands.');
 
   //Respond to "help", if sent directly to me (msg)
-  } else if(to == config.botName && text == 'help') {
+  } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
     bot.say(from, 'For now, you can use the following commands:');
     bot.say(from, '!hacklab - Displays current status of the lab');
+    bot.say(from, '!weather [city] - Displays current weather info');
+
+  } else if ((params = checkCommand('!weather', text)) !== false){
+
+    var query = 'turku';
+
+    if(typeof params[0] != 'undefined'){
+      query = params[0];
+    }
+
+    get('http://api.wunderground.com/api/'+config.wunderground_api_key+'/conditions/q/FI/'+query+'.json', function(response){
+      var text = '';
+
+      if (typeof response.response != "undefined" && typeof response.response.error != "undefined"){
+        text = 'Can\'t find such a place in Finland.'
+
+      } else if (typeof response.response != "undefined" && typeof response.current_observation != "undefined"){
+        var town = response.current_observation.display_location.city;
+        var temp = response.current_observation.temp_c;
+        text = 'Temperature in '+town+' is '+temp+'°C';
+
+      } else {
+        console.log('ERROR: Could not fetch data!');
+        text = 'ERROR: Could not fetch data! Sorry :(';
+
+      }
+
+      if (to == config.botName) {
+        bot.say(from, text);
+      } else {
+        bot.say(to, text);
+      }
+
+    }, function(){
+        console.log('ERROR: Could not fetch data!');
+        bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+
+    });
 
   //Respond to "!hacklab"
-  } else if (text == '!hacklab'){
+  } else if ((params = checkCommand('!hacklab', text)) !== false){
     var error = false;
 
     //Init variables
