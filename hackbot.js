@@ -1,8 +1,8 @@
 //Create configuration object
 var config = {
-	channels: ['#hacklabturku'],
-	server: 'open.ircnet.net',
-	botName: 'hackbot',
+  channels: ['#hacklabturku'],
+  server: 'open.ircnet.net',
+  botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc0xx'
 };
 
@@ -50,7 +50,7 @@ function get(url, success, error) {
 
 //Add a listener for incoming message
 bot.addListener('message', function(from, to, text, message) {
-	//from: user, to: channel or nick, text: text, message: object
+  //from: user, to: channel or nick, text: text, message: object
 
   var params = [];
 
@@ -64,8 +64,10 @@ bot.addListener('message', function(from, to, text, message) {
     bot.say(from, '!hacklab - Displays current status of the lab');
     bot.say(from, '!weather [city] - Displays current weather info');
 
+  //Weather command
   } else if ((params = checkCommand('!weather', text)) !== false){
 
+    //Default query
     var query = 'turku';
 
     if(typeof params[0] != 'undefined'){
@@ -89,6 +91,7 @@ bot.addListener('message', function(from, to, text, message) {
 
       }
 
+      //Send to channel or nick?
       if (to == config.botName) {
         bot.say(from, text);
       } else {
