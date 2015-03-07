@@ -1,6 +1,6 @@
 //Create configuration object
 var config = {
-  channels: ['#kohtalo'],
+  channels: ['#hacklabturku'],
   server: 'open.ircnet.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
@@ -17,13 +17,13 @@ var io = require('socket.io').listen(8008);
 io.set( 'origins', '*:*' );
 
 io.on('connection', function(io){
-  console.log('a user connected');
+  console.log('Dash connected!');
 
   io.emit('packet', {
     type: 'status',
     data: {
       time: m().format('HH:mm:ss'),
-      message: 'Connected to IRC'
+      message: 'Connected to hackbot'
     }
   });
 
@@ -53,6 +53,7 @@ function checkCommand(command, text){
 
 //Function to perform a http GET request
 function get(url, success, error) {
+  console.log(url);
   http.get(url, function(res) {
     body = "";
     res.on('data', function (chunk) {
@@ -102,6 +103,8 @@ bot.addListener('message', function(from, to, text, messageObj) {
     });
 
   }
+
+  console.log("Got message");
 
   params = [];
 
