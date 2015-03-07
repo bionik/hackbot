@@ -1,6 +1,6 @@
 //Create configuration object
 var config = {
-  channels: ['#hacklabturku'],
+  channels: ['#kohtalo'],
   server: 'open.ircnet.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
@@ -11,6 +11,23 @@ var config = {
 var http = require('http');
 var irc = require('irc');
 var u = require('underscore');
+var m = require('moment');
+
+var io = require('socket.io').listen(8008);
+io.set( 'origins', '*:*' );
+
+io.on('connection', function(io){
+  console.log('a user connected');
+
+  io.emit('packet', {
+    type: 'status',
+    data: {
+      time: m().format('HH:mm:ss'),
+      message: 'Connected to IRC'
+    }
+  });
+
+});
 
 //Initialize bot object
 var bot = new irc.Client(config.server, config.botName, {
@@ -50,10 +67,43 @@ function get(url, success, error) {
 }
 
 //Add a listener for incoming message
-bot.addListener('message', function(from, to, text, message) {
+bot.addListener('message', function(from, to, text, messageObj) {
   //from: user, to: channel or nick, text: text, message: object
-
   var params = [];
+
+  if(config.channels.indexOf(to) !== -1){
+    console.log("Emit message");
+
+    var data, type;
+    var message = text;
+
+    params = [];
+    if ((params = checkCommand('!notify', text)) !== false){
+      type = 'notification';
+      data = {
+        time: m().format('HH:mm:ss'),
+        nick: from,
+        message: text.substr(text.indexOf(' ') + 1)
+      };
+
+    } else {
+      type = 'message';
+      data = {
+        time: m().format('HH:mm:ss'),
+        nick: from,
+        message: message
+      };
+
+    }
+
+    io.emit('packet', {
+      type: type,
+      data: data
+    });
+
+  }
+
+  params = [];
 
   //Respond to own name
   if ((params = checkCommand(config.botName, text)) !== false){
@@ -79,7 +129,7 @@ bot.addListener('message', function(from, to, text, message) {
       var text = '';
 
       if (typeof response.response != "undefined" && typeof response.response.error != "undefined"){
-        text = 'Can\'t find such a place in Finland.'
+        text = 'Can\'t find such a place in Finland.';
 
       } else if (typeof response.response != "undefined" && typeof response.current_observation != "undefined"){
         var town = response.current_observation.display_location.city;
@@ -128,11 +178,11 @@ bot.addListener('message', function(from, to, text, message) {
         //Output logic...
         if(room1.data == 1 && room2.data == 1){
           text = 'Lights are off. Hacklab is probably empty. '+temp_text;
-        } else if (room1.data == 1 && room2.data == 0){
+        } else if (room1.data === 1 && room2.data === 0){
           text = 'Lights are on in the electronics room. '+temp_text;
-        } else if (room1.data == 0 && room2.data == 1){
+        } else if (room1.data === 0 && room2.data === 1){
           text = 'Lights are on in the mechanics room. '+temp_text;
-        } else if (room1.data == 0 && room2.data == 0){
+        } else if (room1.data === 0 && room2.data === 0){
           text = 'Lights are on in both rooms! '+temp_text;
         }
 
