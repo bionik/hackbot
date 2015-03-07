@@ -3,7 +3,8 @@ var config = {
   channels: ['#hacklabturku'],
   server: 'open.ircnet.net',
   botName: 'hackbot',
-  wunderground_api_key: '69c0d907f31cc0xx'
+  wunderground_api_key: '69c0d907f31cc084',
+  apiLocation: 'http://localhost/pi_api/'
 };
 
 //Load libraries
@@ -154,7 +155,7 @@ bot.addListener('message', function(from, to, text, message) {
     //we know the queries are complete and can start outputting.
 
     //Fetch room 1
-    get('http://localhost/gpio/?a=readPin&pin=0', function(response){
+    get(config.apiLocation+'gpio/?a=readPin&pin=0', function(response){
       console.log(response);
       room1 = response;
       finished();
@@ -164,7 +165,7 @@ bot.addListener('message', function(from, to, text, message) {
     });
 
     //Fetch room 2
-    get('http://localhost/gpio/?a=readPin&pin=1', function(response){
+    get(config.apiLocation+'gpio/?a=readPin&pin=1', function(response){
       console.log(response);
       room2 = response;
       finished();
@@ -174,7 +175,7 @@ bot.addListener('message', function(from, to, text, message) {
     });
 
     //Fetch temperature data
-    get('http://localhost/temp/?a=getTemp', function(response){
+    get(config.apiLocation+'temp/?a=getTemp', function(response){
       console.log(response);
       temp = response;
       finished();
