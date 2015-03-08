@@ -73,7 +73,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
   var params = [];
 
   if(config.channels.indexOf(to) !== -1){
-    console.log("Emit message");
+    console.log("Broadcast message");
 
     var data, type;
     var message = text;
@@ -84,7 +84,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
       data = {
         time: m().format('HH:mm:ss'),
         nick: from,
-        message: text.substr(text.indexOf(' ') + 1)
+        message: message.substr(message.indexOf(' ') + 1)
       };
 
     } else {
@@ -97,7 +97,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     }
 
-    io.emit('packet', {
+    io.sockets.emit('packet', {
       type: type,
       data: data
     });
@@ -110,16 +110,19 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
   //Respond to own name
   if ((params = checkCommand(config.botName, text)) !== false){
+    console.log(config.botName);
     bot.say(from, 'Hi! Write help for available commands.');
 
   //Respond to "help", if sent directly to me (msg)
   } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
+    console.log('help');
     bot.say(from, 'For now, you can use the following commands:');
     bot.say(from, '!hacklab - Displays current status of the lab');
     bot.say(from, '!w [city] - Displays current weather info');
 
   //Weather command
   } else if ((params = checkCommand('!w', text)) !== false){
+    console.log('!w');
 
     //Default query
     var query = 'turku';
@@ -129,27 +132,32 @@ bot.addListener('message', function(from, to, text, messageObj) {
     }
 
     get('http://api.wunderground.com/api/'+config.wunderground_api_key+'/conditions/q/FI/'+query+'.json', function(response){
-      var text = '';
+      var output = '';
 
       if (typeof response.response != "undefined" && typeof response.response.error != "undefined"){
-        text = 'Can\'t find such a place in Finland.';
+        output = 'Can\'t find such a place in Finland.';
 
       } else if (typeof response.response != "undefined" && typeof response.current_observation != "undefined"){
         var town = response.current_observation.display_location.city;
         var temp = response.current_observation.temp_c;
-        text = 'Temperature in '+town+' is '+temp+'°C';
+        output = 'Temperature in '+town+' is '+temp+'°C';
 
       } else {
         console.log('ERROR: Could not fetch data!');
-        text = 'ERROR: Could not fetch data! Sorry :(';
+        output = 'ERROR: Could not fetch data! Sorry :(';
 
       }
 
       //Send to channel or nick?
       if (to == config.botName) {
-        bot.say(from, text);
+        bot.say(from, output);
       } else {
-        bot.say(to, text);
+        bot.say(to, output);
+
+        io.sockets.emit('packet', {
+          type: type,
+          data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+        });
       }
 
     }, function(){
@@ -160,40 +168,48 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
   //Respond to "!hacklab"
   } else if ((params = checkCommand('!hacklab', text)) !== false){
+    console.log('!hacklab');
     var error = false;
 
     //Init variables
     var room1;
     var room2;
-    var temp;
+    var temperature;
 
     //Wait until finished is called 3 times
     var finished = u.after(3, function(){
-
+      console.log('Success fetching all data!');
       //If no errors...
       if(!error){
         //Init output text
-        var text = '';
+        var output = '';
 
         //Format & round temperature text
-        var temp_text = 'Temperature is '+(Math.round(temp.data*10)/10)+'°C';
+        var temp = 'Temperature is '+(Math.round(temperature.data*10)/10)+'°C';
+
+        console.log(typeof room1.data);
 
         //Output logic...
-        if(room1.data == 1 && room2.data == 1){
-          text = 'Lights are off. Hacklab is probably empty. '+temp_text;
-        } else if (room1.data === 1 && room2.data === 0){
-          text = 'Lights are on in the electronics room. '+temp_text;
-        } else if (room1.data === 0 && room2.data === 1){
-          text = 'Lights are on in the mechanics room. '+temp_text;
-        } else if (room1.data === 0 && room2.data === 0){
-          text = 'Lights are on in both rooms! '+temp_text;
+        if(room1.data === '1' && room2.data === '1'){
+          output = 'Lights are off. Hacklab is probably empty. '+temp;
+        } else if (room1.data === '1' && room2.data === '0'){
+          output = 'Lights are on in the electronics room. '+temp;
+        } else if (room1.data === '0' && room2.data === '1'){
+          output = 'Lights are on in the mechanics room. '+temp;
+        } else if (room1.data === '0' && room2.data === '0'){
+          output = 'Lights are on in both rooms! '+temp;
         }
 
         //Send to channel or nick?
         if (to == config.botName) {
-          bot.say(from, text);
+          bot.say(from, output);
         } else {
-          bot.say(to, text);
+          bot.say(to, output);
+
+          io.sockets.emit('packet', {
+            type: type,
+            data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+          });
         }
 
       } else {
@@ -230,7 +246,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
     //Fetch temperature data
     get(config.apiLocation+'temp/?a=getTemp', function(response){
       console.log(response);
-      temp = response;
+      temperature = response;
       finished();
     }, function(){
       error = true;
