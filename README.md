@@ -7,3 +7,4 @@ Currently responds to following commands:
 * help (by msg only) - Lists commands
 * !hacklab - Informs about the current state of the Hacklab
 * !w [city] - Gets weather info of a city in Finland
+* !stream [stop/URL] - Stop or start playing internet radio stream
