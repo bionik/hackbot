@@ -1,11 +1,18 @@
 //Create configuration object
 var config = {
+  debug: true,
   channels: ['#hacklabturku'],
   server: 'open.ircnet.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
   apiLocation: 'http://localhost/pi_api/'
 };
+
+function log(obj){
+  if(config.debug && console.log !== undefined) {
+    console.log(obj);
+  }
+}
 
 //Load libraries
 var http = require('http');
@@ -17,7 +24,7 @@ var io = require('socket.io').listen(8008);
 io.set( 'origins', '*:*' );
 
 io.on('connection', function(io){
-  console.log('Dash connected!');
+  log('Dash connected!');
 
   io.emit('packet', {
     type: 'status',
@@ -41,7 +48,7 @@ function checkCommand(command, text){
   //Check for command
   if(parameters[0] === command){
     if(parameters.length > 1){
-      console.log(parameters);
+      log(parameters);
       parameters.shift();
       //Return parameters, first removed.
       return parameters;
@@ -53,7 +60,7 @@ function checkCommand(command, text){
 
 //Function to perform a http GET request
 function get(url, success, error) {
-  console.log(url);
+  log(url);
   http.get(url, function(res) {
     body = "";
     res.on('data', function (chunk) {
@@ -70,10 +77,13 @@ function get(url, success, error) {
 //Add a listener for incoming message
 bot.addListener('message', function(from, to, text, messageObj) {
   //from: user, to: channel or nick, text: text, message: object
+  log("Got message");
+
   var params = [];
 
+  //Emit message to dash, if it is sent to a channel
   if(config.channels.indexOf(to) !== -1){
-    console.log("Broadcast message");
+    log("Broadcast message");
 
     var data, type;
     var message = text;
@@ -97,6 +107,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     }
 
+    //Send message to dash
     io.sockets.emit('packet', {
       type: type,
       data: data
@@ -104,25 +115,26 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
   }
 
-  console.log("Got message");
-
+  //Check commands
   params = [];
+  var error;
 
   //Respond to own name
   if ((params = checkCommand(config.botName, text)) !== false){
-    console.log(config.botName);
+    log(config.botName);
     bot.say(from, 'Hi! Write help for available commands.');
 
   //Respond to "help", if sent directly to me (msg)
   } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
-    console.log('help');
+    log('help');
     bot.say(from, 'For now, you can use the following commands:');
     bot.say(from, '!hacklab - Displays current status of the lab');
+    bot.say(from, '!stream [stop/URL] - Controls lab music player');
     bot.say(from, '!w [city] - Displays current weather info');
 
   //Weather command
   } else if ((params = checkCommand('!w', text)) !== false){
-    console.log('!w');
+    log('!w');
 
     //Default query
     var query = 'turku';
@@ -143,7 +155,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
         output = 'Temperature in '+town+' is '+temp+'°C';
 
       } else {
-        console.log('ERROR: Could not fetch data!');
+        log('ERROR: Could not fetch data!');
         output = 'ERROR: Could not fetch data! Sorry :(';
 
       }
@@ -161,15 +173,15 @@ bot.addListener('message', function(from, to, text, messageObj) {
       }
 
     }, function(){
-        console.log('ERROR: Could not fetch data!');
+        log('ERROR: Could not fetch data!');
         bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
 
     });
 
   //Respond to "!hacklab"
   } else if ((params = checkCommand('!hacklab', text)) !== false){
-    console.log('!hacklab');
-    var error = false;
+    log('!hacklab');
+    error = false;
 
     //Init variables
     var room1;
@@ -178,7 +190,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     //Wait until finished is called 3 times
     var finished = u.after(3, function(){
-      console.log('Success fetching all data!');
+      log('Success fetching all data!');
       //If no errors...
       if(!error){
         //Init output text
@@ -186,8 +198,6 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
         //Format & round temperature text
         var temp = 'Temperature is '+(Math.round(temperature.data*10)/10)+'°C';
-
-        console.log(typeof room1.data);
 
         //Output logic...
         if(room1.data === '1' && room2.data === '1'){
@@ -214,7 +224,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
       } else {
         //Print error
-        console.log('ERROR: Could not fetch data!');
+        log('ERROR: Could not fetch data!');
         bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
       }
 
@@ -225,7 +235,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     //Fetch room 1
     get(config.apiLocation+'gpio/?a=readPin&pin=0', function(response){
-      console.log(response);
+      log(response);
       room1 = response;
       finished();
     }, function(){
@@ -235,7 +245,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     //Fetch room 2
     get(config.apiLocation+'gpio/?a=readPin&pin=1', function(response){
-      console.log(response);
+      log(response);
       room2 = response;
       finished();
     }, function(){
@@ -245,7 +255,7 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     //Fetch temperature data
     get(config.apiLocation+'temp/?a=getTemp', function(response){
-      console.log(response);
+      log(response);
       temperature = response;
       finished();
     }, function(){
@@ -253,11 +263,72 @@ bot.addListener('message', function(from, to, text, messageObj) {
       finished();
     });
 
+  } else if ((params = checkCommand('!stream', text)) !== false){
+    log('!stream');
+
+    if(params[0] !== 'undefined' && params[0] === 'stop'){
+      //Stopping stream
+      get(config.apiLocation+'stream/?a=stopStream', function(response){
+        log(response);
+        if (response.status !== undefined && response.status === 'OK'){
+          io.emit('packet', {
+            type: 'status',
+            data: {
+              time: m().format('HH:mm:ss'),
+              message: 'Stream stopped'
+            }
+          });
+
+        } else {
+          //Print error
+          log('ERROR: API call failed!');
+          bot.say(from, 'ERROR: API call failed! Sorry :(');
+
+        }
+      }, function(){
+        //Print error
+        log('ERROR: Could not send data!');
+        bot.say(from, 'ERROR: Could not send data! Sorry :(');
+
+      });
+
+    } else if (params[0] !== 'undefined') {
+      var stream = params[0];
+
+      //Starting stream
+      get(config.apiLocation+'stream/?a=playStream&stream='+stream, function(response){
+        log(response);
+        if (response.status !== undefined && response.status === 'OK'){
+          io.emit('packet', {
+            type: 'status',
+            data: {
+              time: m().format('HH:mm:ss'),
+              message: 'Stream started'
+            }
+          });
+
+        } else {
+          //Print error
+          log('ERROR: API call failed!');
+          bot.say(from, 'ERROR: API call failed! Sorry :(');
+
+        }
+      }, function(){
+        //Print error
+        log('ERROR: Could not send data!');
+        bot.say(from, 'ERROR: Could not send data! Sorry :(');
+
+      });
+    } else {
+      log('ERROR: Incorrect parameters.');
+      bot.say(from, 'ERROR: Incorrect parameters.');
+    }
+
   }
 
 });
 
 //Catch errors
 bot.addListener('error', function(message) {
-    console.log('ERROR: ', message);
+    log('ERROR: ', message);
 });
