@@ -1,8 +1,8 @@
 //Create configuration object
 var config = {
   debug: true,
-  channels: ['#hacklabturku'],
-  server: 'open.ircnet.net',
+  channels: ['#turku.hacklab.fi'],
+  server: 'rajaniemi.freenode.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
   apiLocation: 'http://localhost/pi_api/'
@@ -99,10 +99,15 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
     } else {
       type = 'message';
+
+      var parsed_message = message;
+      //if()
+
+
       data = {
         time: m().format('HH:mm:ss'),
         nick: from,
-        message: message
+        message: parsed_message
       };
 
     }
