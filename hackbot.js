@@ -192,9 +192,10 @@ bot.addListener('message', function(from, to, text, messageObj) {
     var room1;
     var room2;
     var temperature;
+    var humidity;
 
-    //Wait until finished is called 3 times
-    var finished = u.after(3, function(){
+    //Wait until finished is called 4 times
+    var finished = u.after(4, function(){
       log('Success fetching all data!');
       //If no errors...
       if(!error){
@@ -202,17 +203,20 @@ bot.addListener('message', function(from, to, text, messageObj) {
         var output = '';
 
         //Format & round temperature text
-        var temp = 'Temperature is '+(Math.round(temperature.data*10)/10)+'°C';
+        var temperature_text = 'Temperature is '+(Math.round(temperature.data*10)/10)+'°C';
+
+        //Format humidity text
+        var humidity_text = 'Humidity is '+(humidity.data)+'%';
 
         //Output logic...
         if(room1.data === '1' && room2.data === '1'){
-          output = 'Lights are off. Hacklab is probably empty. '+temp;
+          output = 'Lights are off. Hacklab is probably empty. '+temperature_text+' '+humidity_text;
         } else if (room1.data === '1' && room2.data === '0'){
-          output = 'Lights are on in the electronics room. '+temp;
+          output = 'Lights are on in the electronics room. '+temperature_text+' '+humidity_text;
         } else if (room1.data === '0' && room2.data === '1'){
-          output = 'Lights are on in the mechanics room. '+temp;
+          output = 'Lights are on in the mechanics room. '+temperature_text+' '+humidity_text;
         } else if (room1.data === '0' && room2.data === '0'){
-          output = 'Lights are on in both rooms! '+temp;
+          output = 'Lights are on in both rooms! '+temperature_text+' '+humidity_text;
         }
 
         //Send to channel or nick?
@@ -267,6 +271,17 @@ bot.addListener('message', function(from, to, text, messageObj) {
       error = true;
       finished();
     });
+
+    //Fetch humidity data
+    get(config.apiLocation+'humidity/?a=getHumidity', function(response){
+      log(response);
+      humidity = response;
+      finished();
+    }, function(){
+      error = true;
+      finished();
+    });
+
 
   } else if ((params = checkCommand('!stream', text)) !== false){
     log('!stream');
