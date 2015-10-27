@@ -210,13 +210,13 @@ bot.addListener('message', function(from, to, text, messageObj) {
 
         //Output logic...
         if(room1.data === '1' && room2.data === '1'){
-          output = 'Lights are off. Hacklab is probably empty. '+temperature_text+' '+humidity_text;
+          output = 'Lights are off. Hacklab is probably empty. '+temperature_text+'. '+humidity_text;
         } else if (room1.data === '1' && room2.data === '0'){
-          output = 'Lights are on in the electronics room. '+temperature_text+' '+humidity_text;
+          output = 'Lights are on in the electronics room. '+temperature_text+'. '+humidity_text;
         } else if (room1.data === '0' && room2.data === '1'){
-          output = 'Lights are on in the mechanics room. '+temperature_text+' '+humidity_text;
+          output = 'Lights are on in the mechanics room. '+temperature_text+'. '+humidity_text;
         } else if (room1.data === '0' && room2.data === '0'){
-          output = 'Lights are on in both rooms! '+temperature_text+' '+humidity_text;
+          output = 'Lights are on in both rooms! '+temperature_text+'. '+humidity_text;
         }
 
         //Send to channel or nick?
