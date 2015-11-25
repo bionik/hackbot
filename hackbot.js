@@ -8,6 +8,17 @@ var config = {
   apiLocation: 'http://localhost/pi_api/'
 };
 
+function renderStops(data){
+  var text = [];
+  for(var i = 0; i < 3; i++){
+    var d = data[i];
+    if(typeof d !== "undefined"){
+      text.push(d.time+' '+d.line+' '+d.dest);
+    }
+  }
+  return text.join(', ');
+}
+
 function log(obj){
   if(config.debug && console.log !== undefined) {
     console.log(obj);
@@ -101,8 +112,6 @@ bot.addListener('message', function(from, to, text, messageObj) {
       type = 'message';
 
       var parsed_message = message;
-      //if()
-
 
       data = {
         time: m().format('HH:mm:ss'),
@@ -133,11 +142,95 @@ bot.addListener('message', function(from, to, text, messageObj) {
   } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
     log('help');
     bot.say(from, 'For now, you can use the following commands:');
+    bot.say(from, '!bus [stop] - Displays bus stop timetables');
     bot.say(from, '!hacklab - Displays current status of the lab');
-    bot.say(from, '!stream [stop/URL] - Controls lab music player');
+    bot.say(from, '!stream [stop/URL] - Controls music player');
     bot.say(from, '!w [city] - Displays current weather info');
 
+
   //Weather command
+  } else if ((params = checkCommand('!bus', text)) !== false){
+    log('!bus');
+
+    if(typeof params[0] != 'undefined'){
+      var query = parseInt(params[0], 10);
+
+      get(config.apiLocation+'folistop/?a=getStop&stop='+query, function(response){
+        log(response);
+
+        var output = '['+response.stop+'] '+renderStops(response.data);
+
+        if (to == config.botName) {
+          bot.say(from, output);
+        } else {
+          bot.say(to, output);
+
+          io.sockets.emit('packet', {
+            type: type,
+            data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+          });
+        }
+
+      }, function(){
+        //Print error
+        log('ERROR: Could not fetch data!');
+        bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+      });
+
+    } else {
+
+      var error = false;
+      var stop1;
+      var stop2;
+
+      var finished = u.after(2, function(){
+        log('Finished fetching data');
+
+        if(!error){
+
+          var output = '['+stop1.stop+'] '+renderStops(stop1.data)+' ['+stop2.stop+'] '+renderStops(stop2.data);
+
+          if (to == config.botName) {
+            bot.say(from, output);
+          } else {
+            bot.say(to, output);
+
+            io.sockets.emit('packet', {
+              type: type,
+              data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+            });
+          }
+
+        } else {
+          //Print error
+          log('ERROR: Could not fetch data!');
+          bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+        }
+
+      });
+
+      //Fetch stop 264
+      get(config.apiLocation+'folistop/?a=getStop&stop=264', function(response){
+        log(response);
+        stop1 = response;
+        finished();
+      }, function(){
+        error = true;
+        finished();
+      });
+
+      //Fetch stop 662
+      get(config.apiLocation+'folistop/?a=getStop&stop=662', function(response){
+        log(response);
+        stop2 = response;
+        finished();
+      }, function(){
+        error = true;
+        finished();
+      });
+
+    }
+
   } else if ((params = checkCommand('!w', text)) !== false){
     log('!w');
 
