@@ -469,6 +469,10 @@ Hackbot = function(){
 
   };
 
+  //Initialize
+  h.init();
+
 };
 
+log('Instancing Hackbot');
 var hackbot = new Hackbot();
