@@ -174,16 +174,16 @@ Hackbot = function(){
       //Respond to own name
       if ((params = h.checkCommand(config.botName, text)) !== false){
         log(config.botName);
-        bot.say(from, 'Hi! Write help for available commands.');
+        h.bot.say(from, 'Hi! Write help for available commands.');
 
       //Respond to "help", if sent directly to me (msg)
       } else if(to == config.botName && (params = h.checkCommand('help', text)) !== false) {
         log('help');
-        bot.say(from, 'For now, you can use the following commands:');
-        bot.say(from, '!bus [stop] - Displays bus stop timetables');
-        bot.say(from, '!hacklab - Displays current status of the lab');
-        bot.say(from, '!stream [stop/URL] - Controls music player');
-        bot.say(from, '!w [city] - Displays current weather info');
+        h.bot.say(from, 'For now, you can use the following commands:');
+        h.bot.say(from, '!bus [stop] - Displays bus stop timetables');
+        h.bot.say(from, '!hacklab - Displays current status of the lab');
+        h.bot.say(from, '!stream [stop/URL] - Controls music player');
+        h.bot.say(from, '!w [city] - Displays current weather info');
 
       //Bus command
       } else if ((params = h.checkCommand('!bus', text)) !== false){
@@ -198,9 +198,9 @@ Hackbot = function(){
             var output = '['+response.stop+'] '+h.renderStops(response.data);
 
             if (to == config.botName) {
-              bot.say(from, output);
+              h.bot.say(from, output);
             } else {
-              bot.say(to, output);
+              h.bot.say(to, output);
 
               h.io.sockets.emit('packet', {
                 type: type,
@@ -211,7 +211,7 @@ Hackbot = function(){
           }, function(){
             //Print error
             log('ERROR: Could not fetch data!');
-            bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+            h.bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
           });
 
         } else {
@@ -228,9 +228,9 @@ Hackbot = function(){
               var output = '['+stop1.stop+'] '+h.renderStops(stop1.data)+' ['+stop2.stop+'] '+h.renderStops(stop2.data);
 
               if (to == config.botName) {
-                bot.say(from, output);
+                h.bot.say(from, output);
               } else {
-                bot.say(to, output);
+                h.bot.say(to, output);
 
                 h.io.sockets.emit('packet', {
                   type: type,
@@ -241,7 +241,7 @@ Hackbot = function(){
             } else {
               //Print error
               log('ERROR: Could not fetch data!');
-              bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+              h.bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
             }
 
           });
@@ -297,10 +297,10 @@ Hackbot = function(){
 
           //Send to channel or nick?
           if (to == config.botName) {
-            bot.say(from, output);
+            h.bot.say(from, output);
 
           } else {
-            bot.say(to, output);
+            h.bot.say(to, output);
 
             h.io.sockets.emit('packet', {
               type: type,
@@ -310,7 +310,7 @@ Hackbot = function(){
 
         }, function(){
             log('ERROR: Could not fetch data!');
-            bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+            h.bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
 
         });
 
@@ -352,9 +352,9 @@ Hackbot = function(){
 
             //Send to channel or nick?
             if (to == config.botName) {
-              bot.say(from, output);
+              h.bot.say(from, output);
             } else {
-              bot.say(to, output);
+              h.bot.say(to, output);
 
               h.io.sockets.emit('packet', {
                 type: type,
@@ -365,7 +365,7 @@ Hackbot = function(){
           } else {
             //Print error
             log('ERROR: Could not fetch data!');
-            bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
+            h.bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
           }
 
         });
@@ -427,13 +427,13 @@ Hackbot = function(){
             } else {
               //Print error
               log('ERROR: API call failed!');
-              bot.say(from, 'ERROR: API call failed! Sorry :(');
+              h.bot.say(from, 'ERROR: API call failed! Sorry :(');
 
             }
           }, function(){
             //Print error
             log('ERROR: Could not send data!');
-            bot.say(from, 'ERROR: Could not send data! Sorry :(');
+            h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
 
           });
 
@@ -449,18 +449,18 @@ Hackbot = function(){
             } else {
               //Print error
               log('ERROR: API call failed!');
-              bot.say(from, 'ERROR: API call failed! Sorry :(');
+              h.bot.say(from, 'ERROR: API call failed! Sorry :(');
 
             }
           }, function(){
             //Print error
             log('ERROR: Could not send data!');
-            bot.say(from, 'ERROR: Could not send data! Sorry :(');
+            h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
 
           });
         } else {
           log('ERROR: Incorrect parameters.');
-          bot.say(from, 'ERROR: Incorrect parameters.');
+          h.bot.say(from, 'ERROR: Incorrect parameters.');
         }
 
       }
