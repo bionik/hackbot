@@ -470,3 +470,5 @@ function Hackbot(){
   };
 
 }
+
+var hackbot = Hackbot();
