@@ -139,7 +139,7 @@ Hackbot = function(){
         var message = text;
 
         params = [];
-        if ((params = checkCommand('!notify', text)) !== false){
+        if ((params = h.checkCommand('!notify', text)) !== false){
           type = 'notification';
           data = {
             time: m().format('HH:mm:ss'),
@@ -172,12 +172,12 @@ Hackbot = function(){
       var finished;
 
       //Respond to own name
-      if ((params = checkCommand(config.botName, text)) !== false){
+      if ((params = h.checkCommand(config.botName, text)) !== false){
         log(config.botName);
         bot.say(from, 'Hi! Write help for available commands.');
 
       //Respond to "help", if sent directly to me (msg)
-      } else if(to == config.botName && (params = checkCommand('help', text)) !== false) {
+      } else if(to == config.botName && (params = h.checkCommand('help', text)) !== false) {
         log('help');
         bot.say(from, 'For now, you can use the following commands:');
         bot.say(from, '!bus [stop] - Displays bus stop timetables');
@@ -186,7 +186,7 @@ Hackbot = function(){
         bot.say(from, '!w [city] - Displays current weather info');
 
       //Bus command
-      } else if ((params = checkCommand('!bus', text)) !== false){
+      } else if ((params = h.checkCommand('!bus', text)) !== false){
         log('!bus');
 
         if(typeof params[0] != 'undefined'){
@@ -268,7 +268,7 @@ Hackbot = function(){
 
         }
 
-      } else if ((params = checkCommand('!w', text)) !== false){
+      } else if ((params = h.checkCommand('!w', text)) !== false){
         log('!w');
 
         //Default query
@@ -315,7 +315,7 @@ Hackbot = function(){
         });
 
       //Respond to "!hacklab"
-      } else if ((params = checkCommand('!hacklab', text)) !== false){
+      } else if ((params = h.checkCommand('!hacklab', text)) !== false){
         log('!hacklab');
         error = false;
 
@@ -414,7 +414,7 @@ Hackbot = function(){
         });
 
 
-      } else if ((params = checkCommand('!stream', text)) !== false){
+      } else if ((params = h.checkCommand('!stream', text)) !== false){
         log('!stream');
 
         if(params[0] !== 'undefined' && params[0] === 'stop'){
