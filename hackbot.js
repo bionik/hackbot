@@ -74,7 +74,7 @@ Hackbot = function(){
   h.get = function(url, success, error) {
     log(url);
     http.get(url, function(res) {
-      body = "";
+      var body = "";
       res.on('data', function (chunk) {
         body += chunk;
       });
