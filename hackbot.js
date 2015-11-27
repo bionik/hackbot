@@ -22,7 +22,7 @@ function log(obj){
   }
 }
 
-function Hackbot(){
+Hackbot = function(){
   'use strict';
   var h = this;
 
@@ -469,6 +469,6 @@ function Hackbot(){
 
   };
 
-}
+};
 
-var hackbot = Hackbot();
+var hackbot = new Hackbot();
