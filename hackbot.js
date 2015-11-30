@@ -573,16 +573,6 @@ Hackbot = function(){
             h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
           });
 
-          h.get(config.apiLocation+'stream/?a=playStream&stream='+stream, function(response){
-            log(response);
-
-          }, function(){
-
-
-          });
-        } else {
-          log('ERROR: Incorrect parameters.');
-          h.bot.say(from, 'ERROR: Incorrect parameters.');
         }
 
       }
