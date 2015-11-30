@@ -18,7 +18,14 @@ var m = require('moment');
 
 function log(obj){
   if(config.debug && console.log !== undefined) {
-    console.log(obj);
+    var now = new Date();
+    var timestamp = '[' + now.toISOString() + ']: ';
+    if(typeof obj == 'string' || typeof obj == 'number'){
+      console.log(timestamp + obj);
+    } else {
+      console.log(timestamp);
+      console.log(obj);
+    }
   }
 }
 
@@ -506,7 +513,7 @@ Hackbot = function(){
             if (response.status !== undefined && response.status === 'OK'){
 
               //h.sendStatus('Turned heater ON');
-              var output = 'Turned heater ON';
+              var output = 'Turned heater on';
 
               //Send to channel or nick?
               if (to == config.botName) {
