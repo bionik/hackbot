@@ -6,7 +6,7 @@ var config = {
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
   apiLocation: 'http://localhost/pi_api/',
-  pingTimeout: 5*60,
+  pingTimeout: 6*60,
   pingCheckInterval: 30
 };
 
