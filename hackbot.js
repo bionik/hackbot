@@ -182,6 +182,7 @@ Hackbot = function(){
         h.bot.say(from, 'For now, you can use the following commands:');
         h.bot.say(from, '!bus [stop] - Displays bus stop timetables');
         h.bot.say(from, '!hacklab - Displays current status of the lab');
+        h.bot.say(from, '!heater [on/off] - Controls and displays the status of the heater');
         h.bot.say(from, '!stream [stop/URL] - Controls music player');
         h.bot.say(from, '!w [city] - Displays current weather info');
 
@@ -456,6 +457,127 @@ Hackbot = function(){
             //Print error
             log('ERROR: Could not send data!');
             h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
+
+          });
+        } else {
+          log('ERROR: Incorrect parameters.');
+          h.bot.say(from, 'ERROR: Incorrect parameters.');
+        }
+
+      } else if ((params = h.checkCommand('!heater', text)) !== false){
+        log('!heater');
+
+        if(params[0] !== 'undefined' && params[0] === 'off'){
+          //Stopping stream
+          h.get(config.apiLocation+'heater/?a=stopHeater', function(response){
+            log(response);
+            if (response.status !== undefined && response.status === 'OK'){
+
+              //h.sendStatus('Turned heater off');
+              var output = 'Turned heater off';
+
+              //Send to channel or nick?
+              if (to == config.botName) {
+                h.bot.say(from, output);
+              } else {
+                h.bot.say(to, output);
+
+                h.io.sockets.emit('packet', {
+                  type: type,
+                  data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+                });
+              }
+
+            } else {
+              //Print error
+              log('ERROR: API call failed!');
+              h.bot.say(from, 'ERROR: API call failed! Sorry :(');
+            }
+          }, function(){
+            //Print error
+            log('ERROR: Could not send data!');
+            h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
+          });
+
+        } else if(params[0] !== 'undefined' && params[0] === 'on'){
+          //Stopping heater
+          h.get(config.apiLocation+'heater/?a=startHeater', function(response){
+            log(response);
+            if (response.status !== undefined && response.status === 'OK'){
+
+              //h.sendStatus('Turned heater ON');
+              var output = 'Turned heater ON';
+
+              //Send to channel or nick?
+              if (to == config.botName) {
+                h.bot.say(from, output);
+              } else {
+                h.bot.say(to, output);
+
+                h.io.sockets.emit('packet', {
+                  type: type,
+                  data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+                });
+              }
+
+            } else {
+              //Print error
+              log('ERROR: API call failed!');
+              h.bot.say(from, 'ERROR: API call failed! Sorry :(');
+
+            }
+          }, function(){
+            //Print error
+            log('ERROR: Could not send data!');
+            h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
+
+          });
+
+        } else {
+          //Getting heater status
+
+          var heaterPin = 2;
+
+          h.get(config.apiLocation+'gpio/?a=readPin&pin='+heaterPin, function(response){
+            log(response);
+            if (response.status !== undefined && response.status === 'OK'){
+
+              var heater_status = 'off';
+              if(response.data == "1") {
+                heater_status = 'on';
+              }
+
+              var output = "Heater is currently "+heater_status;
+
+              //Send to channel or nick?
+              if (to == config.botName) {
+                h.bot.say(from, output);
+              } else {
+                h.bot.say(to, output);
+
+                h.io.sockets.emit('packet', {
+                  type: type,
+                  data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+                });
+              }
+
+            } else {
+              //Print error
+              log('ERROR: API call failed!');
+              h.bot.say(from, 'ERROR: API call failed! Sorry :(');
+
+            }
+          }, function(){
+            //Print error
+            log('ERROR: Could not send data!');
+            h.bot.say(from, 'ERROR: Could not send data! Sorry :(');
+          });
+
+          h.get(config.apiLocation+'stream/?a=playStream&stream='+stream, function(response){
+            log(response);
+
+          }, function(){
+
 
           });
         } else {
