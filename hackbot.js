@@ -198,22 +198,29 @@ Hackbot = function(){
         log('!bus');
 
         if(typeof params[0] != 'undefined'){
-          query = parseInt(params[0], 10);
+          query = params[0];
 
           h.get(config.apiLocation+'folistop/?a=getStop&stop='+query, function(response){
             log(response);
 
-            var output = '['+response.stop+'] '+h.renderStops(response.data);
+            if(response.status == "OK"){
+              var output = '['+response.stop+'] '+h.renderStops(response.data);
 
-            if (to == config.botName) {
-              h.bot.say(from, output);
+              if (to == config.botName) {
+                h.bot.say(from, output);
+              } else {
+                h.bot.say(to, output);
+
+                h.io.sockets.emit('packet', {
+                  type: type,
+                  data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
+                });
+              }
+
             } else {
-              h.bot.say(to, output);
-
-              h.io.sockets.emit('packet', {
-                type: type,
-                data: { time: m().format('HH:mm:ss'), nick: config.botName, message: output }
-              });
+              //Print error
+              log('ERROR: Could not fetch data!');
+              h.bot.say(from, 'ERROR: Could not fetch data! Sorry :(');
             }
 
           }, function(){
@@ -231,7 +238,7 @@ Hackbot = function(){
           finished = u.after(2, function(){
             log('Finished fetching data');
 
-            if(!error){
+            if(!error && stop1.status == "OK" && stop2.status == "OK"){
 
               var output = '['+stop1.stop+'] '+h.renderStops(stop1.data)+' ['+stop2.stop+'] '+h.renderStops(stop2.data);
 
@@ -545,13 +552,14 @@ Hackbot = function(){
 
           var heaterPin = 2;
 
-          h.get(config.apiLocation+'gpio/?a=readPin&pin='+heaterPin, function(response){
+          h.get(config.apiLocation+'heater/?a=getStatus', function(response){
             log(response);
             if (response.status !== undefined && response.status === 'OK'){
 
               var heater_status = 'off';
-              if(response.data == "1") {
-                heater_status = 'on';
+              if(response.heater.state == "on") {
+                var start_time = m.unix(response.heater.started).format('HH:mm:ss');
+                heater_status = 'on. Turned on at '+start_time;
               }
 
               var output = "Heater is currently "+heater_status;
