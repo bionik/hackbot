@@ -57,7 +57,7 @@ Hackbot = function(){
         text.push(d.time+' '+d.line+' '+d.dest);
       }
     }
-    return text.join(', ');
+    return text.join(' - ');
   };
 
   //Check for command and return parameters
