@@ -2,7 +2,7 @@
 var config = {
   debug: true,
   channels: ['#turku.hacklab.fi'],
-  server: 'rajaniemi.freenode.net',
+  server: 'adams.freenode.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
   apiLocation: 'http://localhost/pi_api/',
@@ -11,6 +11,9 @@ var config = {
 };
 
 //Load libraries
+var sys = require('sys')
+var exec = require('child_process').exec;
+
 var http = require('http');
 var irc = require('irc');
 var u = require('underscore');
@@ -153,6 +156,11 @@ Hackbot = function(){
             nick: from,
             message: message.substr(message.indexOf(' ') + 1)
           };
+
+          //Play sound
+          exec("mpg123 /home/late/stuff/found.mp3", function(error, stdout, stderr){
+            log("Played sound");
+          });
 
         } else {
           type = 'message';
@@ -339,9 +347,10 @@ Hackbot = function(){
         var room2;
         var temperature;
         var humidity;
+        var pir;
 
         //Wait until finished is called 4 times
-        finished = u.after(4, function(){
+        finished = u.after(5, function(){
           log('Success fetching all data!');
           //If no errors...
           if(!error){
@@ -356,14 +365,16 @@ Hackbot = function(){
 
             //Output logic...
             if(room1.data === '1' && room2.data === '1'){
-              output = 'Lights are off. Hacklab is probably empty. '+temperature_text+'. '+humidity_text;
+              output = 'Lights are off. Hacklab is probably empty.';
             } else if (room1.data === '1' && room2.data === '0'){
-              output = 'Lights are on in the electronics room. '+temperature_text+'. '+humidity_text;
+              output = 'Lights are on in the electronics room.';
             } else if (room1.data === '0' && room2.data === '1'){
-              output = 'Lights are on in the mechanics room. '+temperature_text+'. '+humidity_text;
+              output = 'Lights are on in the mechanics room.';
             } else if (room1.data === '0' && room2.data === '0'){
-              output = 'Lights are on in both rooms! '+temperature_text+'. '+humidity_text;
+              output = 'Lights are on in both rooms!';
             }
+
+            output += ' Last movement at '+pir.time+'. '+temperature_text+'. '+humidity_text;
 
             //Send to channel or nick?
             if (to == config.botName) {
@@ -402,6 +413,16 @@ Hackbot = function(){
         h.get(config.apiLocation+'gpio/?a=readPin&pin=1', function(response){
           log(response);
           room2 = response;
+          finished();
+        }, function(){
+          error = true;
+          finished();
+        });
+
+        //Fetch PIR
+        h.get(config.apiLocation+'pir/?a=getStatus', function(response){
+          log(response);
+          pir = response;
           finished();
         }, function(){
           error = true;
