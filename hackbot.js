@@ -147,7 +147,7 @@ Hackbot = function(){
 
         var data, type;
         var message = text;
-
+  
         params = [];
         if ((params = h.checkCommand('!notify', text)) !== false){
           type = 'notification';
