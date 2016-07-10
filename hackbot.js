@@ -5,9 +5,9 @@ var config = {
   server: 'adams.freenode.net',
   botName: 'hackbot',
   wunderground_api_key: '69c0d907f31cc084',
-  apiLocation: 'http://localhost/pi_api/',
-  pingTimeout: 6*60,
-  pingCheckInterval: 30
+  apiLocation: 'http://localhost/pi_api/'
+//  pingTimeout: 6*60,
+//  pingCheckInterval: 30
 };
 
 //Load libraries
@@ -36,9 +36,9 @@ Hackbot = function(){
   'use strict';
   var h = this;
 
-  h.lastPing = 0;
+  //h.lastPing = 0;
 
-  h.checkPingTimeout = function(){
+  /*h.checkPingTimeout = function(){
     var now = Date.now() / 1000;
     if(h.lastPing !== 0){
       if(now - h.lastPing >= config.pingTimeout){
@@ -50,7 +50,7 @@ Hackbot = function(){
         process.exit(1);
       }
     }
-  };
+  };*/
 
   h.renderStops = function(data){
     var text = [];
@@ -112,27 +112,31 @@ Hackbot = function(){
 
     h.io.on('connection', function(io){
       log('Dash connected!');
-      h.sendStatus('Connected to hackbot');
+      h.sendStatus('Dashboard connected');
     });
 
     //Initialize bot object
     h.bot = new irc.Client(config.server, config.botName, {
-      channels: config.channels
+      channels: config.channels,
+      encoding: 'UTF-8',
+      userName: 'hackbot',
+      realName: 'Turku Hacklab IRC bot'
     });
 
     //Set ping timeout checking
-    h.lastPing = Date.now() / 1000;
-    setInterval(h.checkPingTimeout, config.pingCheckInterval);
+    //h.lastPing = Date.now() / 1000;
+    //setInterval(h.checkPingTimeout, config.pingCheckInterval);
 
     //Catch errors
     h.bot.addListener('error', function(message) {
-      log('ERROR: ', message);
+      log('ERROR:');
+      log(message);
     });
 
-    h.bot.addListener('ping', function(message) {
+    /*h.bot.addListener('ping', function(message) {
       log('Got ping!');
       h.lastPing = Date.now() / 1000;
-    });
+    });*/
 
     //Add a listener for incoming message
     h.bot.addListener('message', function(from, to, text, messageObj) {
@@ -197,7 +201,7 @@ Hackbot = function(){
         h.bot.say(from, 'For now, you can use the following commands:');
         h.bot.say(from, '!bus [stop] - Displays bus stop timetables');
         h.bot.say(from, '!hacklab - Displays current status of the lab');
-        h.bot.say(from, '!heater [on/off] - Controls and displays the status of the heater');
+        //h.bot.say(from, '!heater [on/off] - Controls and displays the status of the heater');
         h.bot.say(from, '!stream [stop/URL] - Controls music player');
         h.bot.say(from, '!w [city] - Displays current weather info');
 
@@ -499,7 +503,7 @@ Hackbot = function(){
           h.bot.say(from, 'ERROR: Incorrect parameters.');
         }
 
-      } else if ((params = h.checkCommand('!heater', text)) !== false){
+      } /*else if ((params = h.checkCommand('!heater', text)) !== false){
         log('!heater');
 
         if(params[0] !== 'undefined' && params[0] === 'off'){
@@ -611,7 +615,7 @@ Hackbot = function(){
 
         }
 
-      }
+      }*/
 
     });
 
